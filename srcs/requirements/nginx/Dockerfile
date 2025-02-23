@@ -15,6 +15,6 @@ RUN openssl x509 -req -in ca.csr -signkey ca.key -days 10000 -out ca.crt
 
 WORKDIR /etc/nginx
 
-COPY ./nginx.conf ./nginx.conf
+COPY ./conf/nginx.conf ./nginx.conf
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
