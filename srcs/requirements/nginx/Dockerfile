@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 
-RUN apt-get update && apt-get install -y nginx openssl
+RUN apt update && apt install -y nginx openssl
 
 WORKDIR /etc/nginx/ssl
 
