@@ -1,11 +1,88 @@
 services:
   nginx:
+    container_name: nginx
+    restart: always
     build:
       context: ./requirements/nginx
       dockerfile: Dockerfile
+    depends_on:
+      - wordpress
     ports:
-      - "3443:443"
-  mariadb:
+      - "443:443" 
+    networks:
+      - web
+    volumes:
+      - wp-volume:/var/www/html:ro
+
+  wordpress:
+    container_name: wordpress
+    restart: always
+    build:
+      context: ./requirements/wordpress
+      dockerfile: Dockerfile
+    healthcheck:
+      test: SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep -q pong
+      interval: 5s
+      timeout: 5s
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - wp-volume:/var/www/html
+    networks:
+      - internal
+      - web
+    environment:
+      - DB_HOST
+      - DB_USER
+      - DB_PASSWORD
+      - DB_NAME
+      - WP_URL
+      - WP_TITLE
+      - WP_ADMIN_USER
+      - WP_ADMIN_PASS
+      - WP_ADMIN_EMAIL
+      - WP_EDITOR_USER
+      - WP_EDITOR_PASS
+      - WP_EDITOR_EMAIL
+
+  db:
+    container_name: db
+    restart: always
     build:
       context: ./requirements/mariadb
       dockerfile: Dockerfile
+    healthcheck:
+      test: mysqladmin ping --silent -u $DB_USER -p$DB_PASSWORD
+      interval: 5s
+      timeout: 5s
+    volumes:
+      - db-volume:/var/lib/mysql
+    networks:
+      - internal
+    environment:
+      - DB_NAME
+      - DB_USER
+      - DB_PASSWORD
+
+volumes:
+  wp-volume:
+    name: wp-volume
+    driver: local
+    driver_opts:
+      type: none
+      device: ${HOME}/data/web
+      o: bind
+  db-volume:
+    name: db-volume
+    driver: local
+    driver_opts:
+      type: none
+      device: ${HOME}/data/db
+      o: bind
+
+networks:
+  internal:
+    name: internal
+  web:
+    name: web
