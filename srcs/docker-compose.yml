@@ -25,7 +25,7 @@ services:
       interval: 5s
       timeout: 5s
     depends_on:
-      db:
+      mariadb:
         condition: service_healthy
     volumes:
       - wp-volume:/var/www/html
@@ -46,8 +46,8 @@ services:
       - WP_EDITOR_PASS
       - WP_EDITOR_EMAIL
 
-  db:
-    container_name: db
+  mariadb:
+    container_name: mariadb
     restart: always
     build:
       context: ./requirements/mariadb
